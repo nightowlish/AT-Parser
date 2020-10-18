@@ -13,7 +13,7 @@ STATE_MACHINE_RETURN_VALUE check(uint8_t current_character, uint8_t expected_cha
 
 STATE_MACHINE_RETURN_VALUE at_command_parse(uint8_t current_character) {
     static uint16_t state = 0;
-    static uint16_t col = -1;
+    static uint16_t col = 0;
     switch(state) {
         case 0: 
             mydata.line_count = 0;
@@ -51,22 +51,21 @@ STATE_MACHINE_RETURN_VALUE at_command_parse(uint8_t current_character) {
             return check(current_character, 'O', &state, state + 1);
         case 14:
             if (current_character != 0x0D) {
-                col++;
-                if (mydata.line_count < AT_COMMAND_MAX_LINES && col < AT_COMMAND_MAX_LINE_SIZE - 1){
+                if ((mydata.line_count < AT_COMMAND_MAX_LINES) && (col < AT_COMMAND_MAX_LINE_SIZE - 1)){
                     mydata.data[mydata.line_count][col] = current_character;
+                    col++;
                 }
-                printf("1 %d %d %d\n", mydata.line_count, col, mydata.data[mydata.line_count][col]);
                 return STATE_MACHINE_NOT_READY;
             }
             else if ((col > 0 && mydata.data[mydata.line_count][col - 1] != '\0') && (mydata.line_count < AT_COMMAND_MAX_LINES)){
-                printf("2 %d %d %d\n", mydata.line_count, col, mydata.data[mydata.line_count][col]);
                 mydata.data[mydata.line_count][col] = '\0';
             }
             return check(current_character, 0x0D, &state, state + 1);
         case 16:
             if (current_character == '+') {
-                col = -1;
-                mydata.line_count++;
+                if (mydata.line_count < AT_COMMAND_MAX_LINES)
+                    mydata.line_count++;
+                col = 0;
                 state = 14;
                 return STATE_MACHINE_NOT_READY;
             }

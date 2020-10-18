@@ -3,7 +3,8 @@
 #include "parser.h"
 
 void print(AT_COMMAND_DATA mydata) {
-    printf("TODO: print mydata");
+    for(int i = 0; i < mydata.line_count; i++)
+        printf("%s\n", mydata.data[i]);
 }
 
 int main(int argc, char *argv[]) {
