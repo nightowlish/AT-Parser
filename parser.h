@@ -1,7 +1,8 @@
 //header
+#ifndef PARSER_H
+#define PARSER_H
 
 #include<stdint.h>
-#include<tchar.h>
 
 #define AT_COMMAND_MAX_LINES 100
 #define AT_COMMAND_MAX_LINE_SIZE 128
@@ -24,3 +25,5 @@ typedef enum
 AT_COMMAND_DATA mydata;
 
 STATE_MACHINE_RETURN_VALUE at_command_parse(uint8_t current_character);
+
+#endif
