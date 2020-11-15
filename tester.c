@@ -25,7 +25,12 @@ int main(int argc, char *argv[]) {
             if (return_value == STATE_MACHINE_READY_OK) {
                 printf("AT command result is syntactically correct!\n");
                 print(mydata);
-                break;
+
+                fseek(filePointer, 1L, SEEK_CUR); // consume last character
+                fseek(filePointer, 0L, SEEK_CUR); // flush everything
+                at_command_parse(0x0); // reset command
+
+                continue;
             }
             else if (return_value == STATE_MACHINE_READY_WITH_ERROR) {
                 printf("AT command result is NOT syntactically correct!\n");

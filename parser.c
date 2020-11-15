@@ -14,6 +14,12 @@ STATE_MACHINE_RETURN_VALUE check(uint8_t current_character, uint8_t expected_cha
 STATE_MACHINE_RETURN_VALUE at_command_parse(uint8_t current_character) {
     static uint16_t state = 0;
     static uint16_t col = 0;
+    if (current_character == 0x0) {
+        mydata.line_count = 0;
+        col = 0;
+        state = 0;
+        return STATE_MACHINE_NOT_READY;
+    }
     switch(state) {
         case 0: 
             mydata.line_count = 0;
