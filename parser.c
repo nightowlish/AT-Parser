@@ -12,12 +12,14 @@ STATE_MACHINE_RETURN_VALUE check(uint8_t current_character, uint8_t expected_cha
 }
 
 STATE_MACHINE_RETURN_VALUE at_command_parse(uint8_t current_character) {
+    static uint16_t single_line = 0;
     static uint16_t state = 0;
     static uint16_t col = 0;
     if (current_character == 0x0) {
         mydata.line_count = 0;
         col = 0;
         state = 0;
+        single_line = 0;
         return STATE_MACHINE_NOT_READY;
     }
     switch(state) {
@@ -42,8 +44,12 @@ STATE_MACHINE_RETURN_VALUE at_command_parse(uint8_t current_character) {
             else if (current_character == 'E') 
                 return check(current_character, 'E', &state, 7);
             else if (current_character == '+') 
-                return check(current_character, '+', &state,14);
-            return STATE_MACHINE_READY_WITH_ERROR;
+                return check(current_character, '+', &state, 14);
+            else {
+                single_line = 1;
+                state = 14;
+            }
+            return STATE_MACHINE_NOT_READY;
         case 3:
             return check(current_character, 'K', &state, state + 1);
         case 6:
@@ -68,7 +74,7 @@ STATE_MACHINE_RETURN_VALUE at_command_parse(uint8_t current_character) {
             }
             return check(current_character, 0x0D, &state, state + 1);
         case 16:
-            if (current_character == '+') {
+            if (current_character == '+' && single_line == 0) {
                 if (mydata.line_count < AT_COMMAND_MAX_LINES)
                     mydata.line_count++;
                 col = 0;
