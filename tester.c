@@ -8,7 +8,7 @@ void print(AT_COMMAND_DATA mydata) {
     else 
         printf("Command has %d data lines:\n", mydata.line_count);
         for(int i = 0; i < mydata.line_count; i++)
-            printf("%s\n", mydata.data[i]);
+            printf("\t%s\n", mydata.data[i]);
     printf("\n");
 }
 
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
             }
         }
         if (return_value == STATE_MACHINE_NOT_READY)
-            printf("AT command result is not complete!\n");
+            printf("AT command result is NOT syntactically correct!\n");
     }
     fclose(filePointer);
     return 0;

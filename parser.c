@@ -2,6 +2,10 @@
 #include "parser.h"
 
 STATE_MACHINE_RETURN_VALUE check(uint8_t current_character, uint8_t expected_character, uint16_t *next_state, uint16_t next_state_value) {
+    if (expected_character == '*' && current_character != 0x0A && current_character != 0x0D && current_character != '\n')  {        
+        *next_state = next_state_value;
+        return STATE_MACHINE_NOT_READY;
+    }
     if (current_character == expected_character)  {        
         *next_state = next_state_value;
         if (*next_state == 5 || *next_state == 12)            
@@ -13,6 +17,7 @@ STATE_MACHINE_RETURN_VALUE check(uint8_t current_character, uint8_t expected_cha
 
 STATE_MACHINE_RETURN_VALUE at_command_parse(uint8_t current_character) {
     static uint16_t single_line = 0;
+    static uint16_t sms_command = 0;
     static uint16_t state = 0;
     static uint16_t col = 0;
     static uint16_t first_crlf_sms = 0;
@@ -38,6 +43,8 @@ STATE_MACHINE_RETURN_VALUE at_command_parse(uint8_t current_character) {
             if (current_character == 0x0A)
                 mydata.ok = 0;
         case 15:
+            col = 0;
+            return check(current_character, 0x0A, &state, state + 1);
         case 17:
             return check(current_character, 0x0A, &state, state + 1);
         case 2:
@@ -71,10 +78,7 @@ STATE_MACHINE_RETURN_VALUE at_command_parse(uint8_t current_character) {
                 }
                 return STATE_MACHINE_NOT_READY;
             }
-            else if (first_crlf_sms == 0) {
-                first_crlf_sms = 1;
-            }
-            else if ((col > 0 && mydata.data[mydata.line_count][col - 1] != '\0') && (mydata.line_count < AT_COMMAND_MAX_LINES)){
+            if ((col > 0 && mydata.data[mydata.line_count][col - 1] != '\0') && (mydata.line_count < AT_COMMAND_MAX_LINES)){
                 mydata.data[mydata.line_count][col] = '\0';
             }
             return check(current_character, 0x0D, &state, state + 1);
@@ -86,11 +90,25 @@ STATE_MACHINE_RETURN_VALUE at_command_parse(uint8_t current_character) {
                 state = 14;
                 return STATE_MACHINE_NOT_READY;
             }
-            return check(current_character, 0x0D, &state, state + 1);
+            else if (current_character == 0x0D) {
+                return check(current_character, 0x0D, &state, state + 1);
+            }
+            sms_command = 1;
+            if (first_crlf_sms == 1)
+                first_crlf_sms = 0;
+            return check(current_character, '*', &state, 14); // * represents any char except cr, lf and new line
         case 18:
             if (current_character == 'O') 
                 return check(current_character, 'O', &state, 3);
-            return check(current_character, 'E', &state, 7);
+            if (current_character == 'E') 
+                return check(current_character, 'E', &state, 7);
+            if (current_character == '+')  {        
+                state = 14;
+                col = 0;
+                return STATE_MACHINE_NOT_READY;
+            }
+            return STATE_MACHINE_READY_WITH_ERROR;    
+
         default:
             return STATE_MACHINE_READY_WITH_ERROR;
     }
