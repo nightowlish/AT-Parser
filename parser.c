@@ -79,9 +79,9 @@ STATE_MACHINE_RETURN_VALUE at_command_parse(uint8_t current_character) {
             }
             return check(current_character, 0x0D, &state, state + 1);
         case 16:
+            if (mydata.line_count < AT_COMMAND_MAX_LINES)
+                mydata.line_count++;
             if (current_character == '+' && single_line == 0) {
-                if (mydata.line_count < AT_COMMAND_MAX_LINES)
-                    mydata.line_count++;
                 col = 0;
                 state = 14;
                 return STATE_MACHINE_NOT_READY;

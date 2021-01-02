@@ -3,8 +3,13 @@
 #include "parser.h"
 
 void print(AT_COMMAND_DATA mydata) {
-    for(int i = 0; i < mydata.line_count; i++)
-        printf("%s\n", mydata.data[i]);
+    if (mydata.line_count == 0)
+        printf("Command has no data.\n");
+    else 
+        printf("Command has %d data lines:\n", mydata.line_count);
+        for(int i = 0; i < mydata.line_count; i++)
+            printf("%s\n", mydata.data[i]);
+    printf("\n");
 }
 
 int main(int argc, char *argv[]) {
